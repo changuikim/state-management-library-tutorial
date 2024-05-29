@@ -119,3 +119,163 @@ export const store = configureStore({
   },
 });
 ```
+
+### 4 스토어, 슬라이스의 상태에 접근하기
+
+#### Redux DevTools
+
+- extension
+
+개발자 도구에서 Redux와 관련된 상태 등을 확인할 수 있다.
+
+#### Access store value
+
+- create components/Navbar.js
+
+```js
+import { CartIcon } from '../icons';
+import { useSelector } from 'react-redux';
+
+const Navbar = () => {
+  // selector는 store에 저장된 전체 state를 받아서 필요한 부분만 추출할 수 있다.
+  // 특정 property를 추출하는 방식은 자유이다.
+  const { amount } = useSelector((state) => state.cart);
+
+  return (
+    <nav>
+      <div className="nav-center">
+        <h3>redux toolkit</h3>
+        <div className="nav-container">
+          <CartIcon />
+          <div className="amount-container">
+            <p className="total-amount">{amount}</p>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+```
+
+#### Hero Icons
+
+- [Hero Icons](https://heroicons.com/)
+
+```css
+nav svg {
+  width: 40px;
+  color: var(--clr-white);
+}
+```
+
+#### Setup Cart
+
+- cartSlice.js
+
+```js
+import cartItems from '../../cartItems';
+const initialState = {
+  cartItems: cartItems,
+  amount: 0,
+  total: 0,
+  isLoading: true,
+};
+```
+
+- create CartContainer.js and CartItem.js
+- CartContainer.js
+
+```js
+import React from 'react';
+import CartItem from './CartItem';
+import { useSelector } from 'react-redux';
+
+const CartContainer = () => {
+  const { cartItems, total, amount } = useSelector((state) => state.cart);
+
+  if (amount < 1) {
+    return (
+      <section className="cart">
+        {/* cart header */}
+        <header>
+          <h2>your bag</h2>
+          <h4 className="empty-cart">is currently empty</h4>
+        </header>
+      </section>
+    );
+  }
+
+  return (
+    <section className="cart">
+      {/* cart header */}
+      <header>
+        <h2>your bag</h2>
+      </header>
+      {/* cart items */}
+      <div>
+        {cartItems.map((item) => {
+          return (
+            <CartItem
+              key={item.id}
+              {...item}
+            />
+          );
+        })}
+      </div>
+      {/* cart footer */}
+      <footer>
+        <hr />
+        <div className="cart-total">
+          <h4>
+            total <span>${total}</span>
+          </h4>
+        </div>
+        <button className="btn clear-btn">clear cart</button>
+      </footer>
+    </section>
+  );
+};
+
+export default CartContainer;
+```
+
+- CartItems.js
+- CartItem.js
+
+```js
+import React from 'react';
+import { ChevronDown, ChevronUp } from '../icons';
+
+const CartItem = ({ id, img, title, price, amount }) => {
+  return (
+    <article className="cart-item">
+      <img
+        src={img}
+        alt={title}
+      />
+      <div>
+        <h4>{title}</h4>
+        <h4 className="item-price">${price}</h4>
+        {/* remove button */}
+        <button className="remove-btn">remove</button>
+      </div>
+      <div>
+        {/* increase amount */}
+        <button className="amount-btn">
+          <ChevronUp />
+        </button>
+        {/* amount */}
+        <p className="amount">{amount}</p>
+        {/* decrease amount */}
+        <button className="amount-btn">
+          <ChevronDown />
+        </button>
+      </div>
+    </article>
+  );
+};
+
+export default CartItem;
+```
