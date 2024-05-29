@@ -481,3 +481,152 @@ function App() {
 
 export default App;
 ```
+
+### 6 모달 생성
+
+#### Modal
+
+- create components/Modal.js
+
+```js
+const Modal = () => {
+  return (
+    <aside className="modal-container">
+      <div className="modal">
+        <h4>장바구니의 모든 항목을 삭제하시겠습니까?</h4>
+        <div className="btn-container">
+          <button
+            type="button"
+            className="btn confirm-btn"
+          >
+            확인
+          </button>
+          <button
+            type="button"
+            className="btn clear-btn"
+          >
+            취소
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+export default Modal;
+```
+
+- App.js
+
+```js
+return (
+  <main>
+    <Modal />
+    <Navbar />
+    <CartContainer />
+  </main>
+);
+```
+
+#### modal slice
+
+- create features/modal/modalSlice.js
+
+```js
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  isOpen: false,
+};
+
+const modalSlice = createSlice({
+  name: 'modal',
+  initialState,
+  reducers: {
+    openModal: (state, action) => {
+      state.isOpen = true;
+    },
+    closeModal: (state, action) => {
+      state.isOpen = false;
+    },
+  },
+});
+
+export const { openModal, closeModal } = modalSlice.actions;
+export default modalSlice.reducer;
+```
+
+- App.js
+
+```js
+const { isOpen } = useSelector((state) => state.modal);
+
+return (
+  <main>
+    {isOpen && <Modal />}
+    <Navbar />
+    <CartContainer />
+  </main>
+);
+```
+
+#### toggle modal
+
+- CartContainer.js
+
+```js
+import { openModal } from '../features/modal/modalSlice';
+
+return (
+  <button
+    className="btn clear-btn"
+    onClick={() => {
+      dispatch(openModal());
+    }}
+  >
+    clear cart
+  </button>
+);
+```
+
+- Modal.js
+
+```js
+import { closeModal } from '../features/modal/modalSlice';
+import { useDispatch } from 'react-redux';
+import { clearCart } from '../features/cart/cartSlice';
+
+const Modal = () => {
+  const dispatch = useDispatch();
+
+  return (
+    <aside className="modal-container">
+      <div className="modal">
+        <h4>장바구니의 모든 항목을 삭제하시겠습니까?</h4>
+        <div className="btn-container">
+          <button
+            type="button"
+            className="btn confirm-btn"
+            onClick={() => {
+              dispatch(clearCart());
+              dispatch(closeModal());
+            }}
+          >
+            확인
+          </button>
+          <button
+            type="button"
+            className="btn clear-btn"
+            onClick={() => {
+              dispatch(closeModal());
+            }}
+          >
+            취소
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+export default Modal;
+```
