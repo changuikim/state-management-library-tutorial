@@ -34,12 +34,23 @@ const cartSlice = createSlice({
         cartItem.amount = cartItem.amount - 1;
       }
     },
+    calculateTotals: (state) => {
+      let amount = 0;
+      let total = 0;
+      state.cartItems.forEach((item) => {
+        amount += item.amount;
+        total += item.amount * item.price;
+      });
+      state.amount = amount;
+      state.total = total;
+    },
   },
 });
 
 // console.log(cartSlice);
 // 콘솔에서 확인할 수 있듯이 Immer Library를 쓰면 Action과 Payload를 직접 조작할 필요가 없다.
 
-export const { clearCart, removeItem, increase, decrease } = cartSlice.actions; // Action을 export 한다.
+export const { clearCart, removeItem, increase, decrease, calculateTotals } =
+  cartSlice.actions; // Action을 export 한다.
 
 export default cartSlice.reducer; // Object.property 구조로 reducer를 export 한다.
