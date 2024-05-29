@@ -1,13 +1,43 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import cartItems from '../../cartItems';
+import axios from 'axios';
+
+// const url = 'https://course-api.com/react-useReducer-cart-project';
+
+const url = '/data/cartItems.json';
 
 // API에서 로드할 예정인 feature
 const initialState = {
-  cartItems: cartItems,
+  cartItems: [],
   amount: 4,
   total: 0,
   isLoading: true,
 };
+
+// export const getCartItems = createAsyncThunk('cart/getCartItems', async () => {
+//   try {
+//     const resp = await fetch(url);
+//     return await resp.json();
+//   } catch (err) {
+//     return console.log(err);
+//   }
+// });
+
+export const getCartItems = createAsyncThunk(
+  'cart/getCartItems',
+  async (name, thunkAPI) => {
+    try {
+      // console.log(name);
+      // console.log(thunkAPI);
+      // console.log(thunkAPI.getState());
+      // thunkAPI.dispatch(openModal());
+      const resp = await axios(url);
+      return resp.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue('something went wrong');
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -44,6 +74,34 @@ const cartSlice = createSlice({
       state.amount = amount;
       state.total = total;
     },
+  },
+  // extraReducers: {
+  //   [getCartItems.pending]: (state) => {
+  //     state.isLoading = true;
+  //   },
+  //   [getCartItems.fulfilled]: (state, action) => {
+  //     console.log(action);
+  //     state.isLoading = false;
+  //     state.cartItems = action.payload;
+  //   },
+  //   [getCartItems.rejected]: (state) => {
+  //     state.isLoading = false;
+  //   },
+  // },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getCartItems.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getCartItems.fulfilled, (state, action) => {
+        // console.log(action);
+        state.isLoading = false;
+        state.cartItems = action.payload;
+      })
+      .addCase(getCartItems.rejected, (state, action) => {
+        console.log(action);
+        state.isLoading = false;
+      });
   },
 });
 

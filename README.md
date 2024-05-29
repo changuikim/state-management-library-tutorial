@@ -630,3 +630,138 @@ const Modal = () => {
 };
 export default Modal;
 ```
+
+### 7 Redux-Thunk를 사용한 비동기 처리
+
+#### async functionality with createAsyncThunk
+
+Fetch를 테스트하기 위해 해당 API를 사용한다.
+
+- [Course API](https://course-api.com/)
+- https://course-api.com/react-useReducer-cart-project
+
+- cartSlice.js
+- action type
+- callback function
+- lifecycle actions
+
+```js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+const url = 'https://course-api.com/react-useReducer-cart-project';
+
+// 액션 타입과 콜백 함수를 전달한다.
+// 콜백 함수는 프로미스를 반환한다.
+export const getCartItems = createAsyncThunk('cart/getCartItems', () => {
+  return fetch(url)
+    .then((resp) => resp.json())
+    .catch((err) => console.log(error));
+});
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState,
+  extraReducers: {
+    // 생명주기 액션이 들어있다.
+    [getCartItems.pending]: (state) => {
+      state.isLoading = true;
+    },
+    [getCartItems.fulfilled]: (state, action) => {
+      console.log(action);
+      state.isLoading = false;
+      state.cartItems = action.payload;
+    },
+    [getCartItems.rejected]: (state) => {
+      // 네트워크 통신 장애가 발생할 경우
+      state.isLoading = false;
+    },
+  },
+});
+```
+
+- App.js
+
+```js
+import { calculateTotals, getCartItems } from './features/cart/cartSlice';
+
+function App() {
+  const { cartItems, isLoading } = useSelector((state) => state.cart);
+
+  useEffect(() => {
+    // 통신이 성공적이라면 state에 값을 설정할 수 있다.
+    dispatch(getCartItems());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="loading">
+        <h1>Loading...</h1>
+      </div>
+    );
+  }
+
+  return (
+    <main>
+      {isOpen && <Modal />}
+      <Navbar />
+      <CartContainer />
+    </main>
+  );
+}
+export default App;
+```
+
+#### Options
+
+```sh
+npm install axios
+```
+
+- cartSlice.js
+
+```js
+export const getCartItems = createAsyncThunk(
+  'cart/getCartItems',
+  async (name, thunkAPI) => {
+    try {
+      // console.log(name);
+      // console.log(thunkAPI);
+      // console.log(thunkAPI.getState());
+      // thunkAPI.dispatch(openModal());
+      const resp = await axios(url);
+      return resp.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue('something went wrong');
+    }
+  }
+);
+```
+
+#### The extraReducers "builder callback" notation
+
+cart/cartSlice
+
+```js
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState,
+  reducers: {
+    // reducers
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(getCartItems.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getCartItems.fulfilled, (state, action) => {
+        // console.log(action);
+        state.isLoading = false;
+        state.cartItems = action.payload;
+      })
+      .addCase(getCartItems.rejected, (state, action) => {
+        console.log(action);
+        state.isLoading = false;
+      });
+  },
+});
+```
